@@ -1,14 +1,14 @@
+import json
 from functools import lru_cache
 from typing import List
 
-from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     project_name: str = "AI Academic Assistant API"
     api_v1_prefix: str = "/api/v1"
-    backend_cors_origins: List[str] = ["http://localhost:5173"]
+    backend_cors_origins: str = "http://localhost:5173"
 
     supabase_url: str = ""
     supabase_service_role_key: str = ""
@@ -20,12 +20,28 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    @field_validator("backend_cors_origins", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, value):
-        if isinstance(value, str):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
-        return value
+    @property
+    def backend_cors_origin_list(self) -> List[str]:
+        value = self.backend_cors_origins
+        if isinstance(value, list):
+            return [str(origin).strip() for origin in value if str(origin).strip()]
+        if not isinstance(value, str):
+            return []
+
+        normalized = value.strip()
+        if not normalized:
+            return []
+
+        if normalized.startswith("["):
+            try:
+                parsed = json.loads(normalized)
+            except json.JSONDecodeError:
+                parsed = None
+
+            if isinstance(parsed, list):
+                return [str(origin).strip() for origin in parsed if str(origin).strip()]
+
+        return [origin.strip() for origin in normalized.split(",") if origin.strip()]
 
 
 @lru_cache
