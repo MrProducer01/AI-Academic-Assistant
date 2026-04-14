@@ -1,8 +1,8 @@
 import axios from "axios";
 import { supabase } from "../lib/supabaseClient";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-const API_PREFIX = "/api/v1";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000").replace(/\/+$/, "");
+const API_PREFIX = (import.meta.env.VITE_API_PREFIX || "/api/v1").replace(/\/+$/, "");
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -22,6 +22,11 @@ apiClient.interceptors.request.use(async (config) => {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function apiPath(path) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${API_PREFIX}${normalized}`;
 }
 
 function toNumber(value, fallback = 0) {
@@ -87,18 +92,18 @@ export function normalizeStudent(rawStudent) {
 }
 
 export async function fetchStudents() {
-  const { data } = await apiClient.get("/students");
+  const { data } = await apiClient.get(apiPath("/students"));
   const students = Array.isArray(data?.students) ? data.students : [];
   return students.map(normalizeStudent);
 }
 
 export async function fetchStudentById(studentId) {
-  const { data } = await apiClient.get(`/students/${studentId}`);
+  const { data } = await apiClient.get(apiPath(`/students/${studentId}`));
   return normalizeStudent(data?.student || {});
 }
 
 export async function analyzeStudent(studentId, query) {
-  const { data } = await apiClient.post(`${API_PREFIX}/ai/analyze`, {
+  const { data } = await apiClient.post(apiPath("/ai/analyze"), {
     student_id: studentId,
     query,
   });
@@ -106,6 +111,6 @@ export async function analyzeStudent(studentId, query) {
 }
 
 export async function analyzeClass() {
-  const { data } = await apiClient.post(`${API_PREFIX}/ai/analyze_class`);
+  const { data } = await apiClient.post(apiPath("/ai/analyze_class"));
   return data;
 }

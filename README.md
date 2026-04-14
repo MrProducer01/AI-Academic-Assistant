@@ -22,12 +22,12 @@ The app is designed to let a teacher or academic coordinator:
 
 The backend lives in `backend/` and exposes:
 
-- `GET /students` — list all student records
-- `GET /students/{id}` — fetch a single student profile
+- `GET /api/v1/students` — list all student records
+- `GET /api/v1/students/{id}` — fetch a single student profile
 - `POST /api/v1/ai/analyze` — ask the AI about a student
 - `POST /api/v1/ai/analyze_class` — generate class-level insights
 
-Authentication is enforced on all endpoints except `/health` using Supabase JWT tokens.
+Authentication is enforced on all endpoints except `/api/v1/health` using Supabase JWT tokens.
 The backend uses a Supabase service role key to read student records and to log AI interactions.
 
 ### Frontend
@@ -217,16 +217,17 @@ This demonstrates how the app turns student performance data into actionable ins
 
 - **Cannot fetch students:** check that the backend is running on `http://localhost:8000` and that `frontend/.env` has `VITE_API_BASE_URL` set correctly.
 - **Hosted frontend but no backend data:** if your website is deployed, `VITE_API_BASE_URL` must point to your deployed backend URL, not `localhost`. Also ensure the backend’s `BACKEND_CORS_ORIGINS` includes your deployed frontend domain exactly, without a trailing slash.
+- **Intermittent CORS errors on Vercel previews:** set `BACKEND_CORS_ORIGIN_REGEX` to your project pattern (for example `^https://ai-academic-assistant(?:-[a-zA-Z0-9-]+)?\\.vercel\\.app$`) so preview URLs are accepted.
 - **Login works but API calls fail:** ensure backend `.env` contains the Supabase service role key and `BACKEND_CORS_ORIGINS` includes the origin of the frontend where users access the app, e.g. `https://ai-academic-assistant-lbmxfwvf8.vercel.app`.
 - **AI analysis errors:** verify `GEMINI_API_KEY` is set in backend `.env` and the backend can reach Google Gemini.
 
 ### Key endpoints
 
-- `http://localhost:8000/students`
-- `http://localhost:8000/students/{id}`
+- `http://localhost:8000/api/v1/students`
+- `http://localhost:8000/api/v1/students/{id}`
 - `http://localhost:8000/api/v1/ai/analyze`
 - `http://localhost:8000/api/v1/ai/analyze_class`
-- `http://localhost:8000/health`
+- `http://localhost:8000/api/v1/health`
 
 ---
 
